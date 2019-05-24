@@ -1,5 +1,5 @@
 import java.util.Arrays;
-import java.util.function.Consumer;
+import java.util.Stack;
 
 public class Board {
 
@@ -8,18 +8,30 @@ public class Board {
     private int manhattan;
     private int[][] blocks;
 
+    private static int[][] deepCopy(int[][] original) {
+        if (original == null) {
+            return null;
+        }
+
+        final int[][] result = new int[original.length][];
+        for (int i = 0; i < original.length; i++) {
+            result[i] = Arrays.copyOf(original[i], original[i].length);
+        }
+        return result;
+    }
+
     // construct a board from an n-by-n array of blocks
     // (where blocks[i][j] = block in row i, column j)
     public Board(int[][] blocks) {
-        this.blocks = Arrays.copyOf(blocks, blocks.length);
+        this.blocks = deepCopy(blocks);
         n = blocks.length;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                final int correctNumber = (i + 1) * n + (j + 1);
+                final int correctNumber = i * n + (j + 1);
                 final int currentNumber = blocks[i][j];
-                if (currentNumber != correctNumber) {
+                if (currentNumber != 0 && currentNumber != correctNumber) {
                     hamming++;
-                    manhattan += calculateManhattan(currentNumber, i + 1, j + 1); // FIXME
+                    manhattan += calculateManhattan(currentNumber, i, j + 1);
                 }
             }
         }
@@ -29,6 +41,10 @@ public class Board {
     private int calculateManhattan(final int currentNumber, final int row, final int column) {
         int rowForCurrentNumber = currentNumber / n;
         int columnForCurrentNumber = currentNumber % n;
+        if (columnForCurrentNumber == 0) {
+            columnForCurrentNumber = n;
+            rowForCurrentNumber--;
+        }
         return Math.abs(row - rowForCurrentNumber) + Math.abs(column - columnForCurrentNumber);
     }
 
@@ -54,7 +70,21 @@ public class Board {
 
     // a board that is obtained by exchanging any pair of blocks
     public Board twin() {
-
+        final int[][] twinBlocks = deepCopy(blocks);
+        if (twinBlocks[0][0] != 0 && twinBlocks[1][0] != 0) {
+            int swap = twinBlocks[0][0];
+            twinBlocks[0][0] = twinBlocks[1][0];
+            twinBlocks[1][0] = swap;
+        } else if (twinBlocks[0][0] != 0 && twinBlocks[0][1] != 0) {
+            int swap = twinBlocks[0][0];
+            twinBlocks[0][0] = twinBlocks[0][1];
+            twinBlocks[0][1] = swap;
+        } else {
+            int swap = twinBlocks[1][1];
+            twinBlocks[1][1] = twinBlocks[1][0];
+            twinBlocks[1][0] = swap;
+        }
+        return new Board(blocks);
     }
 
     // does this board equal y?
@@ -78,23 +108,53 @@ public class Board {
 
     // all neighboring boards
     public Iterable<Board> neighbors() {
-
+        final Stack<Board> neighbors = new Stack<>();
+        // find 0 block
+        // try to add 4 neighbors
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                if (blocks[i][j] == 0) {
+                    if (i > 0) {
+                        final int[][] copied = deepCopy(blocks);
+                        copied[i][j] = copied[i - 1][j];
+                        copied[i - 1][j] = 0;
+                        neighbors.add(new Board(copied));
+                    }
+                    if (i < n - 1) {
+                        final int[][] copied = deepCopy(blocks);
+                        copied[i][j] = copied[i + 1][j];
+                        copied[i + 1][j] = 0;
+                        neighbors.add(new Board(copied));
+                    }
+                    if (j > 0) {
+                        final int[][] copied = deepCopy(blocks);
+                        copied[i][j] = copied[i][j - 1];
+                        copied[i][j - 1] = 0;
+                        neighbors.add(new Board(copied));
+                    }
+                    if (j < n - 1) {
+                        final int[][] copied = deepCopy(blocks);
+                        copied[i][j] = copied[i][j + 1];
+                        copied[i][j + 1] = 0;
+                        neighbors.add(new Board(copied));
+                    }
+                    break;
+                }
+            }
+        }
+        return neighbors;
     }
 
     // string representation of this board (in the output format specified below)
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
+        StringBuilder s = new StringBuilder();
+        s.append(n + "\n");
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                if (j != 0) {
-                    stringBuilder.append(" ");
-                }
-                stringBuilder.append(blocks[i][j]);
+                s.append(String.format("%2d ", blocks[i][j]));
             }
-            stringBuilder.append(System.lineSeparator());
+            s.append("\n");
         }
-        return stringBuilder.toString();
+        return s.toString();
     }
-
-//    public static void main(String[] args) // unit tests (not graded)
 }
