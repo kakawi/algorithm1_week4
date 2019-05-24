@@ -1,24 +1,14 @@
+import edu.princeton.cs.algs4.Stack;
+
 import java.util.Arrays;
-import java.util.Stack;
 
 public class Board {
 
     private final int n;
+    private final int[][] blocks;
+
     private int hamming;
     private int manhattan;
-    private int[][] blocks;
-
-    private static int[][] deepCopy(int[][] original) {
-        if (original == null) {
-            return null;
-        }
-
-        final int[][] result = new int[original.length][];
-        for (int i = 0; i < original.length; i++) {
-            result[i] = Arrays.copyOf(original[i], original[i].length);
-        }
-        return result;
-    }
 
     // construct a board from an n-by-n array of blocks
     // (where blocks[i][j] = block in row i, column j)
@@ -35,7 +25,6 @@ public class Board {
                 }
             }
         }
-
     }
 
     private int calculateManhattan(final int currentNumber, final int row, final int column) {
@@ -84,12 +73,27 @@ public class Board {
             twinBlocks[1][1] = twinBlocks[1][0];
             twinBlocks[1][0] = swap;
         }
-        return new Board(blocks);
+        return new Board(twinBlocks);
+    }
+
+    private static int[][] deepCopy(int[][] original) {
+        if (original == null) {
+            return null;
+        }
+
+        final int[][] result = new int[original.length][];
+        for (int i = 0; i < original.length; i++) {
+            result[i] = Arrays.copyOf(original[i], original[i].length);
+        }
+        return result;
     }
 
     // does this board equal y?
     public boolean equals(Object y) {
-        if (!(y instanceof Board)) {
+        if (y == null) {
+            return false;
+        }
+        if (this.getClass() != y.getClass()) {
             return false;
         }
         final Board that = (Board) y;
@@ -118,25 +122,25 @@ public class Board {
                         final int[][] copied = deepCopy(blocks);
                         copied[i][j] = copied[i - 1][j];
                         copied[i - 1][j] = 0;
-                        neighbors.add(new Board(copied));
+                        neighbors.push(new Board(copied));
                     }
                     if (i < n - 1) {
                         final int[][] copied = deepCopy(blocks);
                         copied[i][j] = copied[i + 1][j];
                         copied[i + 1][j] = 0;
-                        neighbors.add(new Board(copied));
+                        neighbors.push(new Board(copied));
                     }
                     if (j > 0) {
                         final int[][] copied = deepCopy(blocks);
                         copied[i][j] = copied[i][j - 1];
                         copied[i][j - 1] = 0;
-                        neighbors.add(new Board(copied));
+                        neighbors.push(new Board(copied));
                     }
                     if (j < n - 1) {
                         final int[][] copied = deepCopy(blocks);
                         copied[i][j] = copied[i][j + 1];
                         copied[i][j + 1] = 0;
-                        neighbors.add(new Board(copied));
+                        neighbors.push(new Board(copied));
                     }
                     break;
                 }
