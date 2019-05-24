@@ -61,7 +61,8 @@ public class Solver {
     private void fillByNeighbors(final MinPQ<BoardWrapper> minPQ, final BoardWrapper minBoardWrapper) {
         final Iterable<Board> neighbors = minBoardWrapper.getBoard().neighbors();
         for (final Board neighbor : neighbors) {
-            if (neighbor.equals(minBoardWrapper.getPreviousBoardWrapper())) {
+            final BoardWrapper previousBoardWrapper = minBoardWrapper.getPreviousBoardWrapper();
+            if (previousBoardWrapper != null && neighbor.equals(previousBoardWrapper.getBoard())) {
                 continue;
             }
             minPQ.insert(new BoardWrapper(neighbor, minBoardWrapper));
